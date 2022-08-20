@@ -108,11 +108,7 @@ def text_to_list(input_text: str, slot_offset: Optional[int] = 0) -> list[int]:
 
     if not input_text:
         return []
-    
-    if slot_offset:
-        return sorted([int(sum([slot_offset, int(x)])) for x in input_text.strip("][").replace(" ", "").split(",")])
-    else:
-        return sorted([int(x) for x in input_text.strip("][").replace(" ", "").split(",")])
+    return sorted([sum([slot_offset, int(x)]) for x in input_text.strip("][").replace(" ", "").split(",")])
 
 
 def unpack_element(element: ElementTree.Element, tags: list[str]) -> dict[str, ElementTree.Element]:

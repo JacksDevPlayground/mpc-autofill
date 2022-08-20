@@ -1,0 +1,99 @@
+<order>
+    <details>
+        <total>8</total>
+        <bracket>18</bracket>
+        <stock>(S30) Standard Smooth</stock>
+        <foil>false</foil>
+        <decks>2</decks>
+    </details>
+    <decks>
+        <deck>
+            <quantity>4</quantity>
+            <fronts>
+                <card>
+                    <id>1cBYrjNoJJ47NWdGUuzmZXco19k5to2YZ</id>
+                    <slots>0</slots>
+                    <name>Captains Claws.jpg</name>
+                    <query>captains claws</query>
+                </card>
+                <card>
+                    <id>1AF4q7L5OBs2pDbY0mePXgFaQLKoa4A8n</id>
+                    <slots>1</slots>
+                    <name>Isshin, Two Heavens as One.png</name>
+                    <query>isshin two heavens as one</query>
+                </card>
+                <card>
+                    <id>1AWWbmgIHwMuRfeWEaqN5MsgqALE37cYs</id>
+                    <slots>2</slots>
+                    <name>Malakir Rebirth (Marta Nael).jpg</name>
+                    <query>Malakir Rebirth</query>
+                </card>
+                <card>
+                    <id>1EnOtB_AkGQZ4bvew6LOichPOce5ZjYG8</id>
+                    <slots>3</slots>
+                    <name>Valakut Awakening (Extended Campbell White).jpg</name>
+                    <query>Valakut Awakening</query>
+                </card>
+            </fronts>
+            <backs>
+                <card>
+                    <id>1FvJBhYDDsHMZxSsPovgMjBbWsafqtjxt</id>
+                    <slots>2</slots>
+                    <name>Malakir Mire (Marta Nael).jpg</name>
+                    <query>malakir mire</query>
+                </card>
+                <card>
+                    <id>15KnYJfteDULEyFo7B6CDwa_f_48DwcP9</id>
+                    <slots>3</slots>
+                    <name>Valakut Stoneforge (Extended Campbell White).jpg</name>
+                    <query>valakut stoneforge</query>
+                </card>
+            </backs>
+            <cardback>1LrVX0pUcye9n_0RtaDNVl2xPrQgn7CYf</cardback>
+        </deck>
+        <deck>
+            <quantity>4</quantity>
+            <fronts>
+                <card>
+                    <id>1cBYrjNoJJ47NWdGUuzmZXco19k5to2YZ</id>
+                    <slots>0</slots>
+                    <name>Captains Claws.jpg</name>
+                    <query>captains claws</query>
+                </card>
+                <card>
+                    <id>1AF4q7L5OBs2pDbY0mePXgFaQLKoa4A8n</id>
+                    <slots>1</slots>
+                    <name>Isshin, Two Heavens as One.png</name>
+                    <query>isshin two heavens as one</query>
+                </card>
+                <card>
+                    <id>1AWWbmgIHwMuRfeWEaqN5MsgqALE37cYs</id>
+                    <slots>2</slots>
+                    <name>Malakir Rebirth (Marta Nael).jpg</name>
+                    <query>Malakir Rebirth</query>
+                </card>
+                <card>
+                    <id>1EnOtB_AkGQZ4bvew6LOichPOce5ZjYG8</id>
+                    <slots>3</slots>
+                    <name>Valakut Awakening (Extended Campbell White).jpg</name>
+                    <query>Valakut Awakening</query>
+                </card>
+            </fronts>
+            <backs>
+                <card>
+                    <id>1FvJBhYDDsHMZxSsPovgMjBbWsafqtjxt</id>
+                    <slots>2</slots>
+                    <name>Malakir Mire (Marta Nael).jpg</name>
+                    <query>malakir mire</query>
+                </card>
+                <card>
+                    <id>15KnYJfteDULEyFo7B6CDwa_f_48DwcP9</id>
+                    <slots>3</slots>
+                    <name>Valakut Stoneforge (Extended Campbell White).jpg</name>
+                    <query>valakut stoneforge</query>
+                </card>
+            </backs>
+            <cardback>1d0jCveC1CP3hNAx34D42E_RCxfz5W_3R</cardback>
+        </deck>
+    </decks>
+</order>

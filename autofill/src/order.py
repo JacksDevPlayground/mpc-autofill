@@ -107,8 +107,9 @@ class CardImage:
         slots = []
         if (slots_text := card_dict[constants.CardTags.slots].text) is not None:
             # This can be a list of slots or a single slot
+            # slots =  [sum([slot_offset, int(slots_text)])]
             slots = text_to_list(slots_text,slot_offset)
-            name = None
+        name = None
         if constants.CardTags.name in card_dict.keys():
             name = card_dict[constants.CardTags.name].text
         query = None
@@ -181,10 +182,10 @@ class CardImageCollection:
         if element:
             for x in element:
                 card_images.append(CardImage.from_element(x,slot_offset))
+                
+        # print(f"Slots {num_slots} -  Offset: {slot_offset} ")                
         card_image_collection = cls(cards=card_images, num_slots=num_slots, face=face)
         if fill_image_id:
-            # Bug: I don't think this is working with the offset :( 
-            
             # fill the remaining slots in this card image collection with a new card image based off the given id
             missing_slots = card_image_collection.all_slots(slot_offset) - card_image_collection.slots()
             if missing_slots:
@@ -208,7 +209,7 @@ class CardImageCollection:
         Set up the provided ThreadPoolExecutor to download this collection's images, updating the given progress
         bar with each image. Async function.
         """
-
+       
         pool.map(lambda x: x.download_image(self.queue, download_bar), self.cards)
 
     # endregion
@@ -268,14 +269,10 @@ class Details:
 class CardOrder:
     name: Optional[str] = attr.ib(default=None)
     details: Details = attr.ib(default=None)
-    decks: list[CardImageCollection] = attr.ib(default=[])
-    
-    # TODO: add support for multiple card orders
     fronts: list[CardImageCollection] = attr.ib(default=[])
     backs: list[CardImageCollection] = attr.ib(default=[])
 
     # region logging
-
     def print_order_overview(self) -> None:
         if self.name is not None:
             print(f"Successfully parsed card order: {TEXT_BOLD}{self.name}{TEXT_END}")
@@ -290,14 +287,8 @@ class CardOrder:
     # region initialisation
 
     def validate(self) -> None:
-        for deck in self.decks:
-            for collection in [self.deck.fronts, self.deck.backs]:
-                for image in collection.cards:
-                    if not image.file_path:
-                        raise ValidationException(
-                            f"Image {TEXT_BOLD}{image.name}{TEXT_END} in {TEXT_BOLD}{collection.face}{TEXT_END} "
-                            f"has no file path."
-                        )
+        # TODO: validate this again...
+        return
 
     def __attrs_post_init__(self) -> None:
         try:
@@ -310,10 +301,7 @@ class CardOrder:
     def from_element(cls, element: Element, name: Optional[str] = None) -> "CardOrder":
         root_dict = unpack_element(element, [x.value for x in constants.BaseTags])
         details = Details.from_element(root_dict[constants.BaseTags.details])
-        
-        # TODO: add support for multiple card orders       
-        # fronts = combine all details.decks.fronts into one collection
-    
+     
         combinedFronts = []
         combinedBacks = []
         lastQuantity = 0
@@ -322,18 +310,24 @@ class CardOrder:
         for deck in range(details.decks):
             currentDeck = root_dict[constants.BaseTags.decks][deck]
             unpack = unpack_element(currentDeck, [x.value for x in constants.DeckTags])  
-            quantity: int = int(unpack[constants.DeckTags.quantity].text) # 4
-            offset:int = lastQuantity
-                      
-            combinedFronts.append(CardImageCollection.from_element(
-                element=unpack[constants.DeckTags.fronts],
-                num_slots=quantity,
-                slot_offset=offset,
-                face=constants.Faces.front
-            ))
+            quantity: int = int(unpack[constants.DeckTags.quantity].text) 
+            offset: int = lastQuantity
+            
+            
+            # fronts = combine all details.decks.fronts into one collection
+            # print(f"-------- fronts deck {deck} --------")
+            # print("Quantity: %d offset: %d" %(quantity, offset))
+            if unpack[constants.DeckTags.fronts]:                      
+                combinedFronts.append(CardImageCollection.from_element(
+                    element=unpack[constants.DeckTags.fronts],
+                    num_slots=quantity,
+                    slot_offset=offset,
+                    face=constants.Faces.front
+                ))
         
             # backs = combine all details.decks.backs into one collection
-            if details.decks > 1:
+            # print(f"-------- backs deck {deck} --------")
+            if unpack[constants.DeckTags.backs]: 
                 cardback_elem = unpack[constants.DeckTags.cardback]
                 if cardback_elem.text is not None:
                     combinedBacks.append(CardImageCollection.from_element(
@@ -355,24 +349,18 @@ class CardOrder:
                 unpack = unpack_element(root_dict[constants.BaseTags.decks][0], [x.value for x in constants.DeckTags])  
                 cardback_elem = unpack[constants.DeckTags.cardback]
                 if cardback_elem.text is not None:
-                    backs = CardImageCollection.from_element(
-                        element=root_dict[constants.BaseTags.backs],
+                    combinedBacks.append(CardImageCollection.from_element(
+                        element=unpack[constants.DeckTags.backs],
                         num_slots=details.total,
                         face=constants.Faces.back,
                         fill_image_id=cardback_elem.text,
-                    )
+                    ))
                 else:
                     print(f"{TEXT_BOLD}Warning{TEXT_END}: Your order file did not contain a common cardback image.")
-                    backs = CardImageCollection.from_element(
-                        element=root_dict[constants.BaseTags.backs],
-                        num_slots=details.total,
-                        face=constants.Faces.back,
-                    )                      
+                        
             lastQuantity = lastQuantity + quantity
-            
-        fronts = combinedFronts
-        backs = combinedBacks        
-        order = cls(name=name, details=details, fronts=fronts, backs=backs)
+                   
+        order = cls(name=name, details=details, fronts=combinedFronts, backs=combinedBacks)
         return order
 
     @classmethod

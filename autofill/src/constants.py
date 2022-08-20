@@ -120,4 +120,4 @@ class GoogleScriptsAPIs(str, Enum):
 
 
 BRACKETS = [18, 36, 55, 72, 90, 108, 126, 144, 162, 180, 198, 216, 234, 396, 504, 612]
-THREADS = 5  # shared between CardImageCollections
+THREADS = 4  # shared between CardImageCollections

@@ -42,6 +42,7 @@ class AutofillDriver:
     status_bar: enlighten.StatusBar = attr.ib(init=False, default=False)
     download_bar: enlighten.Counter = attr.ib(init=False, default=None)
     upload_bar: enlighten.Counter = attr.ib(init=False, default=None)
+    uploads: dict = {}
 
     # region initialisation
     def initialise_driver(self) -> None:
@@ -232,8 +233,11 @@ class AutofillDriver:
         Inserts the image identified by `pid` into `image.slots`.
         If `slots` is specified, fill the image into those slots instead.
         """
+        
+        # Bug: The PID seems to always be the same... after the 4th image is uploaded?!
 
         slots_to_fill = image.slots
+        # print(f"Slot(s) to fill: {slots_to_fill} (image: {image.name}) PID: {pid}")
         if slots is not None:
             slots_to_fill = slots
 
@@ -250,25 +254,31 @@ class AutofillDriver:
     def upload_and_insert_image(self, image: CardImage) -> None:
         """
         Uploads and inserts `image` into MPC. How this is executed depends on whether the image has already been fully
-        or partially uploaded, on not uploaded at all:
+        or partially uploaded, or not uploaded at all:
         * None of the image's slots filled - upload the image and insert it into all slots
         * Some of the image's slots filled - fill the unfilled slots with the image in the first filled
         * All of the image's slots filled - no action required
         """
-
-        slots_filled = [self.is_slot_filled(slot) for slot in image.slots]
+        
+        slots_filled = [self.is_slot_filled(slot) for slot in image.slots]      
+        
         if all(slots_filled):
             return
-        elif not any(slots_filled):
-            pid = self.upload_image(image)
-            self.insert_image(pid, image)
         else:
-            idx = next(index for index, value in enumerate(slots_filled) if value is True)
-            pid = self.execute_javascript(
-                f'{self.get_element_for_slot_js(image.slots[idx])}.getAttribute("pid")', return_=True
-            )
-            unfilled_slot_numbers = [image.slots[i] for i in range(len(image.slots)) if slots_filled[i] is False]
-            self.insert_image(pid, image, slots=unfilled_slot_numbers)
+            # print(f"Current Slot(s): {image.slots}")
+            pid: list[str] = self.execute_javascript(f"oDesignImage.dn_getImageList()", return_=True).split(";")
+            # print(f"PID(s): {pid}")
+            
+            # check self.uploads for image.drive_id, if found insert into image.slots
+            if image.drive_id in self.uploads:
+                self.insert_image(self.uploads[image.drive_id], image)
+            
+            # otherwise, upload image and insert into image.slots
+            else:
+                pid = self.upload_image(image)
+                self.insert_image(pid, image)
+                self.uploads[image.drive_id] = pid
+            
 
     def upload_and_insert_images(self, images: list[CardImageCollection]) -> None:
         for deck in images:
@@ -371,7 +381,6 @@ class AutofillDriver:
             self.execute_javascript("PageLayout.prototype.renderDesignCount()")
 
         with self.switch_to_frame("sysifm_loginFrame"):
-            # TODO: Not great but should be right.
             # Different cardbacks
             self.different_images()
             self.handle_alert()  # potential alert here from switching from same image to different images
@@ -402,19 +411,17 @@ class AutofillDriver:
         with ThreadPoolExecutor(max_workers=THREADS) as pool:
             
             # Download fronts and backs. 
-            
-            # TODO: make this work with lists
             if self.order.details.decks > 1:
                 # Download decks fronts
                 for deck in self.order.fronts:
                     deck.download_images(pool, self.download_bar)
-                
+                    
                 for deck in self.order.backs:
-                    deck.download_images(pool, self.download_bar)
-                
+                    deck.download_images(pool, self.download_bar)   
             else:
-                self.order.fronts.download_images(pool, self.download_bar)
-                self.order.backs.download_images(pool, self.download_bar)
+                self.order.fronts[0].download_images(pool, self.download_bar)
+                self.order.backs[0].download_images(pool, self.download_bar)
+                
                        
 
             if skip_setup:

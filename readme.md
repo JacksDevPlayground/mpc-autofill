@@ -12,7 +12,7 @@
 ### To make it work:
 
 >  **Note**
-> This adds a few extra fields/tags to the cards.xml (You need to add these manually)
+> This adds a few extra fields/tags to the `cards.xml` (**You need to add these manually**)
 
 - Here is the new layout for the `cards.xml` file. 
 - You will need to change `details.quantity` -> `details.total`. (Total of all decks - In the example below 4+4)

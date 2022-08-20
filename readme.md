@@ -5,7 +5,7 @@
 # mpc-autofill
 
 
-- ✨✨✨ Adds multiple decks to a single order (Very manual process - but it works 🤣)
+- ✨✨✨ Adds multiple decks to a single order (Manual process - but it works 🤣)
 
 ![](/img/works.png)
 

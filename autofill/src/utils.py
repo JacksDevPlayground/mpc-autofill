@@ -101,14 +101,18 @@ def download_google_drive_file(drive_id: str, file_path: str) -> bool:
     return False
 
 
-def text_to_list(input_text: str) -> list[int]:
+def text_to_list(input_text: str, slot_offset: Optional[int] = 0) -> list[int]:
     """
     Helper function to translate strings like "[2, 4, 5, 6]" into sorted lists.
     """
 
     if not input_text:
         return []
-    return sorted([int(x) for x in input_text.strip("][").replace(" ", "").split(",")])
+    
+    if slot_offset:
+        return sorted([int(sum([slot_offset, int(x)])) for x in input_text.strip("][").replace(" ", "").split(",")])
+    else:
+        return sorted([int(x) for x in input_text.strip("][").replace(" ", "").split(",")])
 
 
 def unpack_element(element: ElementTree.Element, tags: list[str]) -> dict[str, ElementTree.Element]:

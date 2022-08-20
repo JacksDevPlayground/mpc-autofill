@@ -106,7 +106,8 @@ class CardImage:
             drive_id = drive_id_text.strip(' "')
         slots = []
         if (slots_text := card_dict[constants.CardTags.slots].text) is not None:
-            slots = [sum([slot_offset, int(slots_text)])]
+            # This can be a list of slots or a single slot
+            slots = text_to_list(slots_text,slot_offset)
             name = None
         if constants.CardTags.name in card_dict.keys():
             name = card_dict[constants.CardTags.name].text
@@ -315,14 +316,14 @@ class CardOrder:
     
         combinedFronts = []
         combinedBacks = []
-        startingCardSlotFront = 0 # This will make sure slots are in the correct spot
+        lastQuantity = 0
         print("Found %d decks" %details.decks)
         
         for deck in range(details.decks):
             currentDeck = root_dict[constants.BaseTags.decks][deck]
             unpack = unpack_element(currentDeck, [x.value for x in constants.DeckTags])  
             quantity: int = int(unpack[constants.DeckTags.quantity].text) # 4
-            offset: int = startingCardSlotFront * quantity # 0 * 4 = 0
+            offset:int = lastQuantity
                       
             combinedFronts.append(CardImageCollection.from_element(
                 element=unpack[constants.DeckTags.fronts],
@@ -366,9 +367,9 @@ class CardOrder:
                         element=root_dict[constants.BaseTags.backs],
                         num_slots=details.total,
                         face=constants.Faces.back,
-                    )                    
-            startingCardSlotFront = startingCardSlotFront + 1
-                        
+                    )                      
+            lastQuantity = lastQuantity + quantity
+            
         fronts = combinedFronts
         backs = combinedBacks        
         order = cls(name=name, details=details, fronts=fronts, backs=backs)

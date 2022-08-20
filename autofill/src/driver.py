@@ -59,10 +59,7 @@ class AutofillDriver:
         self.driver = driver
 
     def configure_bars(self) -> None:
-        print("Configuring bars...")
-        print(len(self.order.fronts))
         num_images = sum([deck.card_count() for deck in self.order.fronts]) + sum([deck.card_count() for deck in self.order.backs])
-        print(num_images)
         status_format = "State: {state}, Action: {action}"
         self.status_bar = self.manager.status_bar(
             status_format=status_format,

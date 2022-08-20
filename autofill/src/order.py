@@ -107,8 +107,7 @@ class CardImage:
         slots = []
         if (slots_text := card_dict[constants.CardTags.slots].text) is not None:
             slots = [sum([slot_offset, int(slots_text)])]
-            print(f"Slot {slots}")
-        name = None
+            name = None
         if constants.CardTags.name in card_dict.keys():
             name = card_dict[constants.CardTags.name].text
         query = None
@@ -187,8 +186,6 @@ class CardImageCollection:
             
             # fill the remaining slots in this card image collection with a new card image based off the given id
             missing_slots = card_image_collection.all_slots(slot_offset) - card_image_collection.slots()
-            print(f"Filling {len(missing_slots)} slots in {face} face with {fill_image_id}")
-            print(f"Missing slots: {missing_slots}")
             if missing_slots:
                 card_image_collection.cards.append(
                     CardImage(
@@ -293,7 +290,6 @@ class CardOrder:
 
     def validate(self) -> None:
         for deck in self.decks:
-            print(deck)
             for collection in [self.deck.fronts, self.deck.backs]:
                 for image in collection.cards:
                     if not image.file_path:
@@ -304,7 +300,6 @@ class CardOrder:
 
     def __attrs_post_init__(self) -> None:
         try:
-            print("Validating...")
             self.validate()
         except ValidationException as e:
             input(f"There was a problem with your order file:\n\n{TEXT_BOLD}{e}{TEXT_END}\n\nPress Enter to exit.")
@@ -328,8 +323,6 @@ class CardOrder:
             unpack = unpack_element(currentDeck, [x.value for x in constants.DeckTags])  
             quantity: int = int(unpack[constants.DeckTags.quantity].text) # 4
             offset: int = startingCardSlotFront * quantity # 0 * 4 = 0
-            print("Starting Card Slot Front: %d" %startingCardSlotFront)
-            print("Current Offset: %d" %offset)
                       
             combinedFronts.append(CardImageCollection.from_element(
                 element=unpack[constants.DeckTags.fronts],
@@ -342,7 +335,6 @@ class CardOrder:
             if details.decks > 1:
                 cardback_elem = unpack[constants.DeckTags.cardback]
                 if cardback_elem.text is not None:
-                    print(cardback_elem.text)
                     combinedBacks.append(CardImageCollection.from_element(
                         element=unpack[constants.DeckTags.backs],
                         num_slots=quantity,
@@ -359,7 +351,6 @@ class CardOrder:
                         face=constants.Faces.back,
                     ))
             else:
-                print("Is this hit?!?")
                 unpack = unpack_element(root_dict[constants.BaseTags.decks][0], [x.value for x in constants.DeckTags])  
                 cardback_elem = unpack[constants.DeckTags.cardback]
                 if cardback_elem.text is not None:
@@ -381,7 +372,6 @@ class CardOrder:
         fronts = combinedFronts
         backs = combinedBacks        
         order = cls(name=name, details=details, fronts=fronts, backs=backs)
-        print("Successfully parsed card order.")
         return order
 
     @classmethod

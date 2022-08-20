@@ -73,6 +73,13 @@ class Cardstocks(str, Enum):
 
 class BaseTags(str, Enum):
     details = "details"
+    decks = "decks"
+    
+class DecksTags(str, Enum):
+  decks = "decks"
+        
+class DeckTags(str, Enum):
+    quantity = "quantity"
     fronts = "fronts"
     backs = "backs"
     cardback = "cardback"
@@ -80,10 +87,11 @@ class BaseTags(str, Enum):
 
 
 class DetailsTags(str, Enum):
-    quantity = "quantity"
+    total = "total"
     bracket = "bracket"
     stock = "stock"
     foil = "foil"
+    decks = "decks"
 
 
 class CardTags(str, Enum):

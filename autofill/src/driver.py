@@ -320,7 +320,7 @@ class AutofillDriver:
             self.execute_javascript("displayTotalCount()")
             qty_dropdown = Select(self.driver.find_element(by=By.ID, value="dro_total_count"))
             qty_dropdown.select_by_value(str(self.order.details.bracket))
-            self.execute_javascript(f"document.getElementById('txt_card_number').value={self.order.details.quantity};")
+            self.execute_javascript(f"document.getElementById('txt_card_number').value={self.order.details.total};")
             self.different_images()
             self.handle_alert()
         self.set_state(States.inserting_fronts)
@@ -339,7 +339,7 @@ class AutofillDriver:
 
         # Set the desired number of cards, then move to the next step
         with self.switch_to_frame("sysifm_loginFrame"):
-            self.execute_javascript(f"document.getElementById('txt_card_number').value={self.order.details.quantity};")
+            self.execute_javascript(f"document.getElementById('txt_card_number').value={self.order.details.total};")
             self.different_images()
 
         self.set_state(States.inserting_fronts)
@@ -403,6 +403,9 @@ class AutofillDriver:
     def execute(self, skip_setup: bool) -> None:
         t = time.time()
         with ThreadPoolExecutor(max_workers=THREADS) as pool:
+            
+            # Download fronts and backs. 
+            
             self.order.fronts.download_images(pool, self.download_bar)
             self.order.backs.download_images(pool, self.download_bar)
 

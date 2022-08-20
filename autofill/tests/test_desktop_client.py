@@ -53,7 +53,7 @@ def assert_card_image_collections_identical(a: CardImageCollection, b: CardImage
 
 
 def assert_details_identical(a: Details, b: Details) -> None:
-    assert a.quantity == b.quantity and a.bracket == b.bracket and a.stock == b.stock and a.foil == b.foil
+    assert a.total == b.total and a.bracket == b.bracket and a.stock == b.stock and a.foil == b.foil
 
 
 def assert_orders_identical(a: CardOrder, b: CardOrder) -> None:

@@ -3,7 +3,7 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 from glob import glob
 from queue import Queue
-from typing import Optional
+from typing import DefaultDict, Optional
 from xml.etree.ElementTree import Element, ParseError
 
 import attr
@@ -209,17 +209,18 @@ class CardImageCollection:
 
 @attr.s
 class Details:
-    quantity: int = attr.ib(default=0)
+    total: int = attr.ib(default=0)
     bracket: int = attr.ib(default=0)
     stock: str = attr.ib(default=constants.Cardstocks.S30.value)
     foil: bool = attr.ib(default=False)
+    decks: int = attr.ib(default=1)
 
     # region initialisation
 
     def validate(self) -> None:
-        if not 0 < self.quantity <= self.bracket:
+        if not 0 < self.total <= self.bracket:
             raise ValidationException(
-                f"Order quantity {self.quantity} outside allowable range of {TEXT_BOLD}[0, {self.bracket}]{TEXT_END}!"
+                f"Order total {self.total} outside allowable range of {TEXT_BOLD}[0, {self.bracket}]{TEXT_END}!"
             )
         if self.bracket not in constants.BRACKETS:
             raise ValidationException(f"Order bracket {self.bracket} not supported!")
@@ -234,31 +235,35 @@ class Details:
             sys.exit(0)
 
     # endregion
+    
 
     # region public
 
     @classmethod
     def from_element(cls, element: Element) -> "Details":
         details_dict = unpack_element(element, [x.value for x in constants.DetailsTags])
-        quantity = 0
-        if (quantity_text := details_dict[constants.DetailsTags.quantity].text) is not None:
-            quantity = int(quantity_text)
+        total = 0
+        if (total_text := details_dict[constants.DetailsTags.total].text) is not None:
+            total = int(total_text)
         bracket = 0
         if (bracket_text := details_dict[constants.DetailsTags.bracket].text) is not None:
             bracket = int(bracket_text)
         stock = details_dict[constants.DetailsTags.stock].text or constants.Cardstocks.S30
         foil: bool = details_dict[constants.DetailsTags.foil].text == "true"
+        decks: int = int(details_dict[constants.DetailsTags.decks].text)
 
-        details = cls(quantity=quantity, bracket=bracket, stock=stock, foil=foil)
+        details = cls(total=total, bracket=bracket, stock=stock, foil=foil, decks=decks)
         return details
 
-    # endregion
-
+    # endregion  
 
 @attr.s
 class CardOrder:
     name: Optional[str] = attr.ib(default=None)
     details: Details = attr.ib(default=None)
+    decks: list[CardImageCollection] = attr.ib(default=[])
+    
+    # TODO: add support for multiple card orders
     fronts: CardImageCollection = attr.ib(default=None)
     backs: CardImageCollection = attr.ib(default=None)
 
@@ -268,7 +273,7 @@ class CardOrder:
         if self.name is not None:
             print(f"Successfully parsed card order: {TEXT_BOLD}{self.name}{TEXT_END}")
         print(
-            f"Your order has a total of {TEXT_BOLD}{self.details.quantity}{TEXT_END} cards, in the MPC bracket of up "
+            f"Your order has a total of {TEXT_BOLD}{self.details.total}{TEXT_END} cards, in the MPC bracket of up "
             f"to {TEXT_BOLD}{self.details.bracket}{TEXT_END} cards.\n{TEXT_BOLD}{self.details.stock}{TEXT_END} "
             f"cardstock ({TEXT_BOLD}{'foil' if self.details.foil else 'nonfoil'}{TEXT_END}).\n "
         )
@@ -278,16 +283,19 @@ class CardOrder:
     # region initialisation
 
     def validate(self) -> None:
-        for collection in [self.fronts, self.backs]:
-            for image in collection.cards:
-                if not image.file_path:
-                    raise ValidationException(
-                        f"Image {TEXT_BOLD}{image.name}{TEXT_END} in {TEXT_BOLD}{collection.face}{TEXT_END} "
-                        f"has no file path."
-                    )
+        for deck in self.decks:
+            print(deck)
+            for collection in [self.deck.fronts, self.deck.backs]:
+                for image in collection.cards:
+                    if not image.file_path:
+                        raise ValidationException(
+                            f"Image {TEXT_BOLD}{image.name}{TEXT_END} in {TEXT_BOLD}{collection.face}{TEXT_END} "
+                            f"has no file path."
+                        )
 
     def __attrs_post_init__(self) -> None:
         try:
+            print("Validating...")
             self.validate()
         except ValidationException as e:
             input(f"There was a problem with your order file:\n\n{TEXT_BOLD}{e}{TEXT_END}\n\nPress Enter to exit.")
@@ -297,26 +305,48 @@ class CardOrder:
     def from_element(cls, element: Element, name: Optional[str] = None) -> "CardOrder":
         root_dict = unpack_element(element, [x.value for x in constants.BaseTags])
         details = Details.from_element(root_dict[constants.BaseTags.details])
-        fronts = CardImageCollection.from_element(
-            element=root_dict[constants.BaseTags.fronts],
-            num_slots=details.quantity,
-            face=constants.Faces.front,
-        )
-        cardback_elem = root_dict[constants.BaseTags.cardback]
-        if cardback_elem.text is not None:
-            backs = CardImageCollection.from_element(
-                element=root_dict[constants.BaseTags.backs],
-                num_slots=details.quantity,
-                face=constants.Faces.back,
-                fill_image_id=cardback_elem.text,
-            )
+        
+        # TODO: add support for multiple card orders       
+        # fronts = combine all details.decks.fronts into one collection
+    
+        combinedFronts = []
+        startingCardSlotFront = 0 # This will make sure slots are in the correct spot
+        print("Found %d decks" %details.decks)
+        
+        for deck in range(details.decks):
+            currentDeck = root_dict[constants.BaseTags.decks][deck]
+            unpack = unpack_element(currentDeck, [x.value for x in constants.DeckTags])  
+                      
+            combinedFronts.append(CardImageCollection.from_element(
+                element=unpack[constants.DeckTags.fronts],
+                num_slots=int(unpack[constants.DeckTags.quantity].text),
+                face=constants.Faces.front
+            ))
+
+        fronts = combinedFronts
+        
+        # backs = combine all details.decks.backs into one collection
+        if details.decks > 1:
+            print("")
         else:
-            print(f"{TEXT_BOLD}Warning{TEXT_END}: Your order file did not contain a common cardback image.")
-            backs = CardImageCollection.from_element(
-                element=root_dict[constants.BaseTags.backs],
-                num_slots=details.quantity,
-                face=constants.Faces.back,
-            )
+            currentDeck = root_dict[constants.BaseTags.decks][0]
+            unpack = unpack_element(currentDeck, [x.value for x in constants.DeckTags])  
+            cardback_elem = unpack[constants.DeckTags.cardback]
+            if cardback_elem.text is not None:
+                backs = CardImageCollection.from_element(
+                    element=root_dict[constants.BaseTags.backs],
+                    num_slots=details.total,
+                    face=constants.Faces.back,
+                    fill_image_id=cardback_elem.text,
+                )
+            else:
+                print(f"{TEXT_BOLD}Warning{TEXT_END}: Your order file did not contain a common cardback image.")
+                backs = CardImageCollection.from_element(
+                    element=root_dict[constants.BaseTags.backs],
+                    num_slots=details.total,
+                    face=constants.Faces.back,
+                )
+                
         # If the order has a single cardback, set its slots to [0], as it will only be uploaded and inserted into
         # a single slot
         if len(backs.cards) == 1:

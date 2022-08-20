@@ -3,7 +3,6 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from typing import Any, Callable, Generator, Optional
-
 import attr
 import enlighten
 from selenium import webdriver
@@ -60,7 +59,10 @@ class AutofillDriver:
         self.driver = driver
 
     def configure_bars(self) -> None:
-        num_images = len(self.order.fronts.cards) + len(self.order.backs.cards)
+        print("Configuring bars...")
+        print(len(self.order.fronts))
+        num_images = sum([deck.card_count() for deck in self.order.fronts]) + sum([deck.card_count() for deck in self.order.backs])
+        print(num_images)
         status_format = "State: {state}, Action: {action}"
         self.status_bar = self.manager.status_bar(
             status_format=status_format,
@@ -271,12 +273,13 @@ class AutofillDriver:
             unfilled_slot_numbers = [image.slots[i] for i in range(len(image.slots)) if slots_filled[i] is False]
             self.insert_image(pid, image, slots=unfilled_slot_numbers)
 
-    def upload_and_insert_images(self, images: CardImageCollection) -> None:
-        for _ in range(len(images.cards)):
-            image: CardImage = images.queue.get()
-            if image.downloaded:
-                self.upload_and_insert_image(image)
-            self.upload_bar.update()
+    def upload_and_insert_images(self, images: list[CardImageCollection]) -> None:
+        for deck in images:
+            for _ in range(len(deck.cards)):
+                image: CardImage = deck.queue.get()
+                if image.downloaded:
+                    self.upload_and_insert_image(image)
+                self.upload_bar.update()
 
     # endregion
 
@@ -371,12 +374,9 @@ class AutofillDriver:
             self.execute_javascript("PageLayout.prototype.renderDesignCount()")
 
         with self.switch_to_frame("sysifm_loginFrame"):
-            if len(self.order.backs.cards) == 1:
-                # Same cardback for every card
-                self.same_images()
-            else:
-                # Different cardbacks
-                self.different_images()
+            # TODO: Not great but should be right.
+            # Different cardbacks
+            self.different_images()
             self.handle_alert()  # potential alert here from switching from same image to different images
         self.set_state(States.inserting_backs)
 
@@ -406,8 +406,19 @@ class AutofillDriver:
             
             # Download fronts and backs. 
             
-            self.order.fronts.download_images(pool, self.download_bar)
-            self.order.backs.download_images(pool, self.download_bar)
+            # TODO: make this work with lists
+            if self.order.details.decks > 1:
+                # Download decks fronts
+                for deck in self.order.fronts:
+                    deck.download_images(pool, self.download_bar)
+                
+                for deck in self.order.backs:
+                    deck.download_images(pool, self.download_bar)
+                
+            else:
+                self.order.fronts.download_images(pool, self.download_bar)
+                self.order.backs.download_images(pool, self.download_bar)
+                       
 
             if skip_setup:
                 self.set_state(States.defining_order, "Awaiting user input")

@@ -168,3 +168,6 @@ elasticsearch
 .env_prod
 MPCAutofill/exported_drives.csv
 MPCAutofill/drives.csv
+
+# oops
+mpc

@@ -12,12 +12,14 @@
 ### To make it work:
 
 >  **Note**
-> Here is the new layout for the `cards.xml` file. 
-> You will need to change `details.quantity` -> `details.total`. (Total of all decks - In the example below 4+4)
-> You will need to add `details.decks` tag
-> You will need to add a `decks` tag
-> You will need to move `fronts`, `backs`, `cardback` into a new `decks.deck` tag
-> You will need to add a `deck.quantity` tag with the total number for that deck (In the example below there are 4 cards)
+> This adds a few extra fields/tags to the cards.xml (You need to add these manually)
+
+- Here is the new layout for the `cards.xml` file. 
+- You will need to change `details.quantity` -> `details.total`. (Total of all decks - In the example below 4+4)
+- You will need to add `details.decks` tag
+- You will need to add a `decks` tag
+- You will need to move `fronts`, `backs`, `cardback` into a new `decks.deck` tag
+- You will need to add a `deck.quantity` tag with the total number for that deck (In the example below there are 4 cards)
   
 ```xml
 <order>

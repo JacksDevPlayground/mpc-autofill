@@ -1,15 +1,25 @@
-![build](https://github.com/chilli-axe/mpc-autofill/actions/workflows/build.yml/badge.svg)
-![tests_black_isort_mypy](https://github.com/chilli-axe/mpc-autofill/actions/workflows/tests_black_isort_mypy.yml/badge.svg)
-[![Github all releases](https://img.shields.io/github/downloads/chilli-axe/mpc-autofill/total.svg)](https://GitHub.com/chilli-axe/mpc-autofill/releases/)
-
 # mpc-autofill
 
+>  **Note**
+> This is a fork of the original and won't be maintained. This was just a quick throw together so I didn't have to manually combine orders. 
+> However, to simplify this process, I've also made a website. Which can be viewed [here](https://ubiquitous-twilight-0995d9.netlify.app/) to automatically convert/combine multiple orders into 1 🚀🚀
 
-- ✨✨✨ Adds multiple decks to a single order (Manual process - but it works 🤣)
+- ✨ Adds multiple decks to a single order
 
 ![](/img/works.png)
 
 ### To make it work:
+
+### New ⭐ **(Recommended)**
+
+1. Generate as many decks as you want (up to 612 cards)
+1. Head over to [MPC Fill Xml Editor](https://ubiquitous-twilight-0995d9.netlify.app/)
+1. Add all your `cards.xml` files you want combined
+1. Click 'combine'
+1. Place the new downloaded file next to mpcfill
+1. let the magic happen :) 
+
+### Old 😢 (Not Recommended)
 
 >  **Note**
 > This adds a few extra fields/tags to the `cards.xml` (**You need to add these manually**)
